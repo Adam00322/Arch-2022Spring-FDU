@@ -2,8 +2,7 @@
 `include "include/common.sv"
 `endif
 
-module CBusMultiplexer
-    import common::*;#(
+module CBusMultiplexer #(
     parameter int NUM_INPUTS = 2,  // NOTE: NUM_INPUTS >= 1
 
     localparam int MAX_INDEX = NUM_INPUTS - 1

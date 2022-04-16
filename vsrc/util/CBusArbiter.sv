@@ -2,9 +2,9 @@
 `define __CBUSARBITER_SV
 
 `ifdef VERILATOR
-`include "include/common.sv"
+`include "include/interface.svh"
 `else
-
+`include "interface.svh"
 `endif
 /**
  * this implementation is not efficient, since

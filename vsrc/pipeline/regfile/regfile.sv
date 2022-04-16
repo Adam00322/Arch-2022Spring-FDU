@@ -5,6 +5,7 @@
 `else
 
 `endif
+
 module regfile 
 	import common::*;
 	#(
@@ -25,6 +26,15 @@ module regfile
 		assign rd1[i] = regs[ra1[i]];
 		assign rd2[i] = regs[ra2[i]];
 	end
+
+	// always_ff @(posedge clk) begin
+	// 	if (reset) begin
+	// 		regs <= '0;
+	// 	end else begin
+	// 		regs <= regs_nxt;
+	// 		regs[0] <= '0;
+	// 	end
+	// end
 
 	always_ff @(posedge clk) begin
 		if (reset) begin
@@ -50,6 +60,5 @@ module regfile
 
 endmodule
 
-
-
 `endif
+

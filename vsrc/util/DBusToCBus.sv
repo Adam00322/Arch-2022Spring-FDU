@@ -10,8 +10,7 @@
  * NOTE: CBus does not support byte write enable mask (write_en).
  */
 
-module DBusToCBus
-    import common::*;(
+module DBusToCBus (
     input  dbus_req_t  dreq,
     output dbus_resp_t dresp,
     output cbus_req_t  dcreq,

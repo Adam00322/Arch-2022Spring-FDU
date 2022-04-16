@@ -2,14 +2,21 @@
 `define __CORE_SV
 `ifdef VERILATOR
 `include "include/common.sv"
+`include "include/pipes.sv"
 `include "pipeline/regfile/regfile.sv"
+`include "pipeline/fetch/fetch.sv"
+`include "pipeline/decode/decode.sv"
+`include "pipeline/execute/execute.sv"
+`include "pipeline/memory/memory.sv"
+`include "pipeline/writeback/writeback.sv"
+`include "pipeline/supercontrol/supercontrol.sv"
 
 `else
-
 `endif
 
 module core 
-	import common::*;(
+	import common::*;
+	import pipes::*;(
 	input logic clk, reset,
 	output ibus_req_t  ireq,
 	input  ibus_resp_t iresp,
@@ -17,17 +24,117 @@ module core
 	input  dbus_resp_t dresp
 );
 	/* TODO: Add your pipeline here. */
+	
+	
+	fetch_data_t dataF, dataF_nxt;
+	decode_data_t dataD, dataD_nxt;
+	execute_data_t dataE, dataE_nxt;
+	memory_data_t dataM, dataM_nxt;
+	writeback_data_t dataW;
+	supercontrol_t sctlD, sctlE;
 
+	creg_addr_t ra1, ra2;
+	word_t rd1, rd2;
+	addr_t PCbranch;
+	decode_op_t op;
+	u1 branch;
+	u1 stall;
+
+	fetch fetch(
+		.clk,.reset,
+		.ireq,
+		.iresp,
+		.dataF(dataF_nxt),
+		.branch,
+		.PCbranch,
+		.en(~sctlD.stall & ~sctlE.stall)
+	);
+	
+	always_ff @(posedge clk) begin
+		if(~sctlD.stall & ~sctlE.stall) begin
+			if(reset | branch ) dataF <= '0;
+			else dataF <= dataF_nxt;
+		end	
+	end
+	
+	decode decode(
+		.dataF,
+		.dataD(dataD_nxt),
+		.PCbranch,
+		.branch,
+		.op,
+		.rd1,.rd2,.ra1,.ra2,
+		.aluoutE(dataE.aluout),
+		.aluoutM(dataM.aluout),
+		.memdata(dataM.readdata),
+		.sctlD
+	);
+
+	always_ff @(posedge clk) begin
+		if (~sctlE.stall) begin
+			if(reset | sctlD.stall) dataD <= '0;
+			else dataD <= dataD_nxt;
+		end
+	end
+
+	execute execute(
+		.dataD,
+		.dataE(dataE_nxt),
+		.aluoutE(dataE.aluout),
+		.aluoutM(dataM.aluout),
+		.memdata(dataM.readdata),
+		.sctlE
+	);
+
+	always_ff @(posedge clk) begin
+		if(reset | sctlE.stall) dataE <= '0;
+		else dataE <= dataE_nxt;
+	end
+
+	memory memory(
+		.dataE,
+		.dataM(dataM_nxt),
+		.dresp,
+		.dreq
+	);
+
+	always_ff @(posedge clk) begin
+		if(reset) dataM <= '0;
+		else dataM <= dataM_nxt;
+	end
+
+	writeback writeback(
+		.dataM,
+		.dataW
+	);
+
+	supercontrol supercontrol(
+		.ra1,.ra2,
+		.Dra1(dataD.ra1),
+		.Dra2(dataD.ra2),
+		.op,
+		.dstD(dataD.dst),
+		.dstE(dataE.dst),
+		.dstM(dataM.dst),
+		.memtoregD(dataD.ctl.memtoreg),
+		.memtoregE(dataE.memtoreg),
+		.memtoregM(dataM.memtoreg),
+		.regwriteD(dataD.ctl.regwrite),
+		.regwriteE(dataE.regwrite),
+		.regwriteM(dataM.regwrite),
+		.sctlD,
+		.sctlE
+	);
 
 	regfile regfile(
 		.clk, .reset,
-		.ra1(),
-		.ra2(),
-		.rd1(),
-		.rd2(),
-		.wvalid(),
-		.wa(),
-		.wd()
+		.ra1,
+		.ra2,
+		.rd1,
+		.rd2,
+		.wvalid(dataW.regwrite),
+		.wa(dataW.dst),
+		.wd(dataW.wdata)
 	);
 
 `ifdef VERILATOR
@@ -35,15 +142,15 @@ module core
 		.clock              (clk),
 		.coreid             (0),
 		.index              (0),
-		.valid              (0),
-		.pc                 (0),
-		.instr              (0),
-		.skip               (0),
+		.valid              (dataW.valid),//无提交时�?0
+		.pc                 (dataW.pc),
+		.instr              (dataW.raw_instr),
+		.skip               (dataW.skip),//内存读写时为1
 		.isRVC              (0),
 		.scFailed           (0),
-		.wen                (0),
-		.wdest              (0),
-		.wdata              (0)
+		.wen                (dataW.regwrite),
+		.wdest              (dataW.dst),
+		.wdata              (dataW.wdata)
 	);
 	      
 	DifftestArchIntRegState DifftestArchIntRegState (
