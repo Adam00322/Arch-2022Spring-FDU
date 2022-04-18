@@ -78,18 +78,53 @@ module decode
     end
 
     always_comb begin
-        if(op == OP_BEQ)begin
-            if(dataD.srca==dataD.srcb)begin
+        unique case (op)
+            OP_BEQ:begin
+                if(dataD.srca==dataD.srcb)begin
+                    branch = 1;
+                    PCbranch = dataF.pc+imm;
+                end else branch = 0;
+            end
+            OP_BNE:begin
+                if(dataD.srca!=dataD.srcb)begin
+                    branch = 1;
+                    PCbranch = dataF.pc+imm;
+                end else branch = 0;
+            end
+            OP_BLT:begin
+                if($signed(dataD.srca)<$signed(dataD.srcb))begin
+                    branch = 1;
+                    PCbranch = dataF.pc+imm;
+                end else branch = 0;
+            end
+            OP_BLTU:begin
+                if(dataD.srca<dataD.srcb)begin
+                    branch = 1;
+                    PCbranch = dataF.pc+imm;
+                end else branch = 0;
+            end
+            OP_BGE:begin
+                if($signed(dataD.srca)>=$signed(dataD.srcb))begin
+                    branch = 1;
+                    PCbranch = dataF.pc+imm;
+                end else branch = 0;
+            end
+            OP_BGEU:begin
+                if(dataD.srca>=dataD.srcb)begin
+                    branch = 1;
+                    PCbranch = dataF.pc+imm;
+                end else branch = 0;
+            end
+            OP_JAL:begin
+                PCbranch = dataF.pc+{{44{raw_instr[31]}}, raw_instr[19:12], raw_instr[20], raw_instr[30:21], 1'b0};
                 branch = 1;
-                PCbranch = dataF.pc+imm;
-            end else branch = 0;
-        end else if (op == OP_JAL) begin
-            PCbranch = dataF.pc+{{44{raw_instr[31]}}, raw_instr[19:12], raw_instr[20], raw_instr[30:21], 1'b0};
-            branch = 1;
-        end else if (op == OP_JALR) begin
-            PCbranch = (dataD.srca + {{52{raw_instr[31]}},raw_instr[31:20]})&~1;
-            branch = 1;
-        end else branch = 0;
+            end
+            OP_JALR:begin
+                PCbranch = (dataD.srca + {{52{raw_instr[31]}},raw_instr[31:20]})&~1;
+                branch = 1;
+            end
+            default: branch = 0;
+        endcase
     end
 
     decoder decoder(

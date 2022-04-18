@@ -18,7 +18,7 @@ module supercontrol
 );
 
     always_comb begin
-        if((op == OP_BEQ || op == OP_JALR) && (((memtoregD || regwriteD) && (ra1 == dstD || ra2 == dstD)) || (memtoregE && (ra1 == dstE || ra2 == dstE)))) begin
+        if((op == OP_BEQ || op == OP_JALR || op == OP_BNE || op == OP_BLT || op == OP_BLTU || op == OP_BGEU) && (((memtoregD || regwriteD) && (ra1 == dstD || ra2 == dstD)) || (memtoregE && (ra1 == dstE || ra2 == dstE)))) begin
             sctlD.stall = 1;
         end else begin
             sctlD.stall = 0;

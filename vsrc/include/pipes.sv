@@ -10,13 +10,13 @@ package pipes;
 /* Define instrucion decoding rules here */
 
 // parameter F7_RI = 7'bxxxxxxx;
-parameter F7_ADDI = 7'b0010011;//XORI,ORI,ANDI
+parameter F7_ADDI = 7'b0010011;//XORI,ORI,ANDI,SLTI
 // parameter F7_XORI = 7'b0010011;
 // parameter F7_ORI = 7'b0010011;
 // parameter F7_ANDI = 7'b0010011;
 parameter F7_LUI = 7'b0110111;//no f3
 parameter F7_JAL = 7'b1101111;//no f3
-parameter F7_BEQ = 7'b1100011;
+parameter F7_BEQ = 7'b1100011;//BNE,BLT,BGE,BLTU,BGEU
 parameter F7_LD = 7'b0000011;
 parameter F7_SD = 7'b0100011;
 parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR  f7_2
@@ -27,11 +27,20 @@ parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR  f7_2
 parameter F7_AUIPC = 7'b0010111;//no f3
 parameter F7_JALR = 7'b1100111;
 
+
 parameter F3_ADDI = 3'b000;
 parameter F3_XORI = 3'b100;
 parameter F3_ORI = 3'b110;
 parameter F3_ANDI = 3'b111;
+parameter F3_SLTI = 3'b010;
+
 parameter F3_BEQ = 3'b000;
+parameter F3_BNE = 3'b001;
+parameter F3_BLT = 3'b100;
+parameter F3_BLTU = 3'b110;
+parameter F3_BGE = 3'b101;
+parameter F3_BGEU = 3'b111;
+
 parameter F3_LD = 3'b011;
 parameter F3_SD = 3'b011;
 parameter F3_ADD = 3'b000;//SUB
@@ -40,6 +49,7 @@ parameter F3_AND = 3'b111;
 parameter F3_OR = 3'b110;
 parameter F3_XOR = 3'b100;
 parameter F3_JALR = 3'b000;
+
 
 parameter F7_ADD_2 = 7'b0000000;
 parameter F7_SUB_2 = 7'b0100000;
@@ -60,7 +70,7 @@ typedef enum logic [4:0] {
     ALU_AND
 } alufunc_t;
 
-typedef enum logic[5:0] {
+typedef enum logic[7:0] {
     UNKNOWN,
 	OP_ADDI,
     OP_XORI,
@@ -77,7 +87,40 @@ typedef enum logic[5:0] {
     OP_OR,
     OP_XOR,
     OP_AUIPC,
-    OP_JALR
+    OP_JALR,
+    OP_BNE,
+    OP_BLT,
+    OP_BGE,
+    OP_BLTU,
+    OP_BGEU,
+    OP_SLTI,
+    OP_SLTIU,
+    OP_SLLI,
+    OP_SRLI,
+    OP_SRAI,
+    OP_SLL,
+    OP_SLT,
+    OP_SLTU,
+    OP_SRL,
+    OP_SRA,
+    OP_ADDIW,
+    OP_SLLIW,
+    OP_SRLIW,
+    OP_SRAIW,
+    OP_ADDW,
+    OP_SUBW,
+    OP_SLLW,
+    OP_SRLW,
+    OP_SRAW,
+    OP_LB,
+    OP_LH,
+    OP_LW,
+    OP_LBU,
+    OP_LHU,
+    OP_LWU,
+    OP_SB,
+    OP_SH,
+    OP_SW
 } decode_op_t;
 
 typedef struct packed {

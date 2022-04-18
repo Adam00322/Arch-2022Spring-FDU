@@ -149,7 +149,7 @@ module core
 		.isRVC              (0),
 		.scFailed           (0),
 		.wen                (dataW.regwrite),
-		.wdest              (dataW.dst),
+		.wdest              ({3'b0,dataW.dst}),
 		.wdata              (dataW.wdata)
 	);
 	      

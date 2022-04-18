@@ -66,6 +66,17 @@ module decoder
                         // ctl.branch = 0;
                         im = I_ADDI;
                     end
+                    F3_SLTI:begin
+                        op = OP_SLTI;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 0;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 0;
+                        // ctl.branch = 0;
+                        im = I_ADDI;
+                    end
                     default: ctl = '0;
                 endcase
             end
@@ -102,6 +113,61 @@ module decoder
                         ctl.memwrite = 0;
                         ctl.memtoreg = 0;
                         // ctl.branch = 0;
+                        im = I_BEQ;
+                    end
+                    F3_BNE:begin
+                        op = OP_BNE;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 0;
+                        ctl.memread = 0;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 0;
+                        // ctl.branch = 1;
+                        im = I_BEQ;
+                    end
+                    F3_BLT:begin
+                        op = OP_BLT;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 0;
+                        ctl.memread = 0;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 0;
+                        // ctl.branch = 1;
+                        im = I_BEQ;
+                    end
+                    F3_BLTU:begin
+                        op = OP_BLTU;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 0;
+                        ctl.memread = 0;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 0;
+                        // ctl.branch = 1;
+                        im = I_BEQ;
+                    end
+                    F3_BGE:begin
+                        op = OP_BGE;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 0;
+                        ctl.memread = 0;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 0;
+                        // ctl.branch = 1;
+                        im = I_BEQ;
+                    end
+                    F3_BGEU:begin
+                        op = OP_BGEU;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 0;
+                        ctl.memread = 0;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 0;
+                        // ctl.branch = 1;
                         im = I_BEQ;
                     end
                     default: ctl = '0;
