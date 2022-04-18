@@ -53,6 +53,7 @@ module decode
             I_JAL: imm = dataF.pc+4;
             I_BEQ: imm = {{52{raw_instr[31]}}, raw_instr[7], raw_instr[30:25], raw_instr[11:8], 1'b0};
             I_AUIPC: imm = {{32{raw_instr[31]}}, raw_instr[31:12], 12'b000000000000} + dataF.pc;
+            I_SLLI: imm[5:0] = raw_instr[25:20];
             default: imm = 0;
         endcase
     end
@@ -131,6 +132,7 @@ module decode
         .f7(raw_instr[6:0]),
         .f7_2(raw_instr[31:25]),
         .f3(raw_instr[14:12]),
+        .f6(raw_instr[31:26]),
         .ctl(dataD.ctl),
         .op,
         .im(im)

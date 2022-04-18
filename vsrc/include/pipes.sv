@@ -10,22 +10,18 @@ package pipes;
 /* Define instrucion decoding rules here */
 
 // parameter F7_RI = 7'bxxxxxxx;
-parameter F7_ADDI = 7'b0010011;//XORI,ORI,ANDI,SLTI
-// parameter F7_XORI = 7'b0010011;
-// parameter F7_ORI = 7'b0010011;
-// parameter F7_ANDI = 7'b0010011;
+parameter F7_ADDI = 7'b0010011;//XORI,ORI,ANDI,SLTI,SLTIU,SLLI,SRLI,SRAI
 parameter F7_LUI = 7'b0110111;//no f3
 parameter F7_JAL = 7'b1101111;//no f3
 parameter F7_BEQ = 7'b1100011;//BNE,BLT,BGE,BLTU,BGEU
 parameter F7_LD = 7'b0000011;
 parameter F7_SD = 7'b0100011;
-parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR  f7_2
-// parameter F7_SUB = 7'b0110011;
-// parameter F7_AND = 7'b0110011;
-// parameter F7_OR = 7'b0110011;
-// parameter F7_XOR = 7'b0110011;
+parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR,SLL
 parameter F7_AUIPC = 7'b0010111;//no f3
 parameter F7_JALR = 7'b1100111;
+parameter F7_ADDIW = 7'b0011011;//f3 same as ADDI
+parameter F7_ADDW = 7'b0111011;//f3 same as ADD
+
 
 
 parameter F3_ADDI = 3'b000;
@@ -33,6 +29,9 @@ parameter F3_XORI = 3'b100;
 parameter F3_ORI = 3'b110;
 parameter F3_ANDI = 3'b111;
 parameter F3_SLTI = 3'b010;
+parameter F3_SLTIU = 3'b011;
+parameter F3_SLLI = 3'b001;//f6
+parameter F3_SRLI = 3'b001;//f6,SRAI
 
 parameter F3_BEQ = 3'b000;
 parameter F3_BNE = 3'b001;
@@ -43,11 +42,17 @@ parameter F3_BGEU = 3'b111;
 
 parameter F3_LD = 3'b011;
 parameter F3_SD = 3'b011;
+
 parameter F3_ADD = 3'b000;//SUB
 // parameter F3_SUB = 3'b000;
 parameter F3_AND = 3'b111;
 parameter F3_OR = 3'b110;
 parameter F3_XOR = 3'b100;
+parameter F3_SLL = 3'b001;
+parameter F3_SLT = 3'b010;
+parameter F3_SLTU = 3'b011;
+parameter F3_SRL = 3'b101;//SRA
+
 parameter F3_JALR = 3'b000;
 
 
@@ -56,6 +61,16 @@ parameter F7_SUB_2 = 7'b0100000;
 parameter F7_AND_2 = 7'b0000000;
 parameter F7_OR_2 = 7'b0000000;
 parameter F7_XOR_2 = 7'b0000000;
+parameter F7_ADD_2 = 7'b0000000;
+parameter F7_SLL_2 = 7'b0000000;
+parameter F7_SLT_2 = 7'b0000000;
+parameter F7_SLTU_2 = 7'b0000000;
+parameter F7_SRL_2 = 7'b0000000;
+parameter F7_SRA_2 = 7'b0100000;
+
+parameter F6_SLLI = 6'b000000;
+parameter F6_SRLI = 6'b000000;
+parameter F6_SRAI = 6'b010000;
 
 
 
@@ -67,7 +82,17 @@ typedef enum logic [4:0] {
     ALU_SUB,
     ALU_XOR,
     ALU_OR,
-    ALU_AND
+    ALU_AND,
+    ALU_SLT,
+    ALU_SLTU,
+    ALU_SLL,
+    ALU_SRL,
+    ALU_SRA,
+    ALU_ADDW,
+    ALU_SUBW,
+    ALU_SLLW,
+    ALU_SRLW,
+    ALU_SRAW
 } alufunc_t;
 
 typedef enum logic[7:0] {
@@ -140,7 +165,8 @@ typedef enum logic[4:0] {
     I_JAL,
     I_BEQ,
     I_AUIPC,
-    I_JALR
+    I_JALR,
+    I_SLLI
 } im_t;
 
 typedef struct packed {
