@@ -60,18 +60,19 @@ module core
 		.en(~stallF),
 		.sctlF
 	);
-	
+
+
 	always_ff @(posedge clk) begin
-		if(reset) branch <= 0;
-		else if(branch_nxt) begin
+		if(branch_nxt) begin
 			branch <= 1;
 			PCbranch <= PCbranch_nxt;
 		end
-	end
-
-	always_ff @(posedge clk) begin
-		if(~stallD) begin
-			if(reset | stallF) dataF <= '0;
+		if(reset) begin
+			dataF <= '0;
+			branch <= 0;
+		end
+		else if(~stallD) begin
+			if(stallF) dataF <= '0;
 			else if(branch)begin
 				dataF <= '0;
 				branch <= 0;
@@ -94,8 +95,9 @@ module core
 	);
 
 	always_ff @(posedge clk) begin
-		if (~stallE) begin
-			if(reset | stallD) dataD <= '0;
+		if(reset) dataD <= '0;
+		else if (~stallE) begin
+			if(stallD) dataD <= '0;
 			else dataD <= dataD_nxt;
 		end
 	end
@@ -110,8 +112,9 @@ module core
 	);
 
 	always_ff @(posedge clk) begin
-		if(~stallM) begin
-			if(reset | stallE) dataE <= '0;
+		if(reset) dataE <= '0;
+		else if(~stallM) begin
+			if(stallE) dataE <= '0;
 			else dataE <= dataE_nxt;
 		end
 	end
