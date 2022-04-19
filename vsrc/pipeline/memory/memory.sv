@@ -4,6 +4,8 @@
 `ifdef VERILATOR
 `include "include/common.sv"
 `include "include/pipes.sv"
+`include "pipeline/memory/readdata.sv"
+`include "pipeline/memory/writedata.sv"
 `endif
 
 module memory
@@ -13,8 +15,10 @@ module memory
     output memory_data_t dataM,
 
     input dbus_resp_t dresp,
-    output dbus_req_t dreq
+    output dbus_req_t dreq,
+    output u1 stallM
 );
+    strobe_t strobe;
 
     assign dataM.valid = dataE.valid;
     assign dataM.raw_instr = dataE.raw_instr;
@@ -27,17 +31,32 @@ module memory
 
     assign dreq.valid = dataE.memtoreg | dataE.memwrite;
     assign dreq.addr = dataE.aluout;
-    assign dreq.size = MSIZE8;
-    assign dreq.data = dataE.writedata;
+    assign dreq.size = dataE.msize;
+    assign stallM = dreq.valid && ~dresp.data_ok;
+
 
     always_comb begin
-        if(dataE.memwrite)dreq.strobe = 8'b11111111;
+        if(dataE.memwrite) dreq.strobe = strobe;
         else dreq.strobe = '0;
     end
 
-    assign dataM.readdata = dresp.data;
+
+    readdata readdata(
+        ._rd(dresp.data),
+        .rd(dataM.readdata),
+        .addr(dataE.aluout[2:0]),
+        .msize(dataE.msize),
+        .mem_unsigned(dataE.mem_unsigned)
+    );
 
 
+    writedata writedata(
+        .addr(dataE.aluout[2:0]),
+        ._wd(dataE.writedata),
+        .msize(dataE.msize),
+        .wd(dreq.data),
+        .strobe
+    );
 
     
 endmodule

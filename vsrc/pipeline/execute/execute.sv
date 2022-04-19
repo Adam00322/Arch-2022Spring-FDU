@@ -29,6 +29,8 @@ module execute
     assign dataE.pc = dataD.pc;
     assign dataE.raw_instr = dataD.raw_instr;
     assign dataE.dst = dataD.dst;
+    assign dataE.msize = dataD.ctl.msize;
+    assign dataE.mem_unsigned = dataD.ctl.mem_unsigned;
 
     always_comb begin
         unique case (sctlE.ac)

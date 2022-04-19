@@ -17,15 +17,19 @@ module fetch
     output fetch_data_t dataF,
     input logic branch,
     input addr_t PCbranch,
-    input u1 en
+    input u1 en,
+    output u1 sctlF
 );
 
     addr_t pc, pc_nxt;
 	assign ireq.addr = pc;
+    assign sctlF = ireq.valid && ~iresp.data_ok;
+
     always_ff @(posedge clk) begin
         if(en)begin
             if(reset) begin
                 pc <= 64'h8000_0000;
+                ireq.valid = 1;
             end else begin
                 pc <= pc_nxt;
             end

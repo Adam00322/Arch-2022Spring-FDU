@@ -35,10 +35,20 @@ module core
 
 	creg_addr_t ra1, ra2;
 	word_t rd1, rd2;
+	addr_t PCbranch_nxt;
 	addr_t PCbranch;
 	decode_op_t op;
+	u1 branch_nxt;
 	u1 branch;
-	u1 stall;
+	u1 sctlF;
+	u1 stallF;
+	u1 stallD;
+	u1 stallE;
+	u1 stallM;
+
+	assign stallF = sctlF | stallD;
+	assign stallD = sctlD.stall | stallE;
+	assign stallE = sctlE.stall | stallM;
 
 	fetch fetch(
 		.clk,.reset,
@@ -47,12 +57,25 @@ module core
 		.dataF(dataF_nxt),
 		.branch,
 		.PCbranch,
-		.en(~sctlD.stall & ~sctlE.stall)
+		.en(~stallF),
+		.sctlF
 	);
 	
 	always_ff @(posedge clk) begin
-		if(~sctlD.stall & ~sctlE.stall) begin
-			if(reset | branch ) dataF <= '0;
+		if(reset) branch <= 0;
+		else if(branch_nxt) begin
+			branch <= 1;
+			PCbranch <= PCbranch_nxt;
+		end
+	end
+
+	always_ff @(posedge clk) begin
+		if(~stallD) begin
+			if(reset | stallF) dataF <= '0;
+			else if(branch)begin
+				dataF <= '0;
+				branch <= 0;
+			end
 			else dataF <= dataF_nxt;
 		end	
 	end
@@ -60,8 +83,8 @@ module core
 	decode decode(
 		.dataF,
 		.dataD(dataD_nxt),
-		.PCbranch,
-		.branch,
+		.PCbranch(PCbranch_nxt),
+		.branch(branch_nxt),
 		.op,
 		.rd1,.rd2,.ra1,.ra2,
 		.aluoutE(dataE.aluout),
@@ -71,8 +94,8 @@ module core
 	);
 
 	always_ff @(posedge clk) begin
-		if (~sctlE.stall) begin
-			if(reset | sctlD.stall) dataD <= '0;
+		if (~stallE) begin
+			if(reset | stallD) dataD <= '0;
 			else dataD <= dataD_nxt;
 		end
 	end
@@ -87,19 +110,22 @@ module core
 	);
 
 	always_ff @(posedge clk) begin
-		if(reset | sctlE.stall) dataE <= '0;
-		else dataE <= dataE_nxt;
+		if(~stallM) begin
+			if(reset | stallE) dataE <= '0;
+			else dataE <= dataE_nxt;
+		end
 	end
 
 	memory memory(
 		.dataE,
 		.dataM(dataM_nxt),
 		.dresp,
-		.dreq
+		.dreq,
+		.stallM
 	);
 
 	always_ff @(posedge clk) begin
-		if(reset) dataM <= '0;
+		if(reset | stallM) dataM <= '0;
 		else dataM <= dataM_nxt;
 	end
 

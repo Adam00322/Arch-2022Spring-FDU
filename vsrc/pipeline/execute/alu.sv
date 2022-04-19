@@ -22,16 +22,16 @@ module alu
 			ALU_XOR: c = a ^ b;
 			ALU_OR:  c = a | b;
 			ALU_AND: c = a & b;
-			ALU_SLT: c = $signed(a) < $signed(b);
-			ALU_SLTU: c = a < b;
+			ALU_SLT: c[0] = $signed(a) < $signed(b);
+			ALU_SLTU: c[0] = a < b;
 			ALU_SLL: c = a << b[5:0];
 			ALU_SRL: c = a >> b[5:0];
 			ALU_SRA: c = $signed(a) >>> b[5:0];
 			ALU_ADDW: begin c = a + b; c = {{32{c[31]}},c[31:0]}; end
-			ALU_SUBW: begin c = a + b; c = {{32{c[31]}},c[31:0]}; end
-			ALU_SLLW: begin c = a << b[4:0]; c = {{32{c[31]}},c[31:0]}; end
-			ALU_SRLW: begin c = a >> b[4:0]; c = {{32{c[31]}},c[31:0]}; end
-			ALU_SRAW: begin c = $signed(a) >>> b[4:0]; c = {{32{c[31]}},c[31:0]}; end
+			ALU_SUBW: begin c = a - b; c = {{32{c[31]}},c[31:0]}; end
+			ALU_SLLW: begin c[31:0] = a[31:0] << b[4:0]; c = {{32{c[31]}},c[31:0]}; end
+			ALU_SRLW: begin c[31:0] = a[31:0] >> b[4:0]; c = {{32{c[31]}},c[31:0]}; end
+			ALU_SRAW: begin c[31:0] = $signed(a[31:0]) >>> b[4:0]; c = {{32{c[31]}},c[31:0]}; end
 			default: c = '0;
 		endcase
 	end

@@ -20,6 +20,7 @@ module decoder
 );
 
     always_comb begin
+        ctl = '0;
         unique case (f7)
             F7_ADDI:begin
                 unique case (f3)
@@ -95,7 +96,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_SLLI;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SRLI:begin
@@ -120,10 +121,10 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_SLLI;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
-                    default: ctl = '0;
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_ADDIW:begin
@@ -134,7 +135,7 @@ module decoder
                         ctl.alufunc = ALU_ADDW;
                         ctl.alusrc = 1;
                         ctl.memread = 0;
-                        ctl.memwrite = 1;
+                        ctl.memwrite = 0;
                         ctl.memtoreg = 0;
                         im = I_ADDI;
                     end
@@ -150,7 +151,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_SLLI;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SRLI:begin
@@ -175,10 +176,10 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_SLLI;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
-                    default: ctl = '0;
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_LUI:begin
@@ -263,7 +264,7 @@ module decoder
                         ctl.memtoreg = 0;
                         im = I_BEQ;
                     end
-                    default: ctl = '0;
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_LD:begin
@@ -276,9 +277,79 @@ module decoder
                         ctl.memread = 1;
                         ctl.memwrite = 0;
                         ctl.memtoreg = 1;
+                        ctl.msize = MSIZE8;
                         im = I_ADDI;
                     end
-                    default: ctl = '0;
+                    F3_LB:begin
+                        op = OP_LB;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 1;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 1;
+                        ctl.msize = MSIZE1;
+                        im = I_ADDI;
+                    end
+                    F3_LH:begin
+                        op = OP_LH;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 1;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 1;
+                        ctl.msize = MSIZE2;
+                        im = I_ADDI;
+                    end
+                    F3_LW:begin
+                        op = OP_LW;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 1;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 1;
+                        ctl.msize = MSIZE4;
+                        im = I_ADDI;
+                    end
+                    F3_LBU:begin
+                        op = OP_LBU;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 1;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 1;
+                        ctl.msize = MSIZE1;
+                        ctl.mem_unsigned = 1;
+                        im = I_ADDI;
+                    end
+                    F3_LHU:begin
+                        op = OP_LHU;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 1;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 1;
+                        ctl.msize = MSIZE2;
+                        ctl.mem_unsigned = 1;
+                        im = I_ADDI;
+                    end
+                    F3_LWU:begin
+                        op = OP_LWU;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 1;
+                        ctl.memwrite = 0;
+                        ctl.memtoreg = 1;
+                        ctl.msize = MSIZE4;
+                        ctl.mem_unsigned = 1;
+                        im = I_ADDI;
+                    end
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_SD:begin
@@ -291,9 +362,43 @@ module decoder
                         ctl.memread = 0;
                         ctl.memwrite = 1;
                         ctl.memtoreg = 0;
+                        ctl.msize = MSIZE8;
                         im = I_SD;
                     end
-                    default: ctl = '0;
+                    F3_SB:begin
+                        op = OP_SB;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 0;
+                        ctl.memwrite = 1;
+                        ctl.memtoreg = 0;
+                        ctl.msize = MSIZE1;
+                        im = I_SD;
+                    end
+                    F3_SH:begin
+                        op = OP_SH;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 0;
+                        ctl.memwrite = 1;
+                        ctl.memtoreg = 0;
+                        ctl.msize = MSIZE2;
+                        im = I_SD;
+                    end
+                    F3_SW:begin
+                        op = OP_SW;
+                        ctl.regwrite = 0;
+                        ctl.alufunc = ALU_ADD;
+                        ctl.alusrc = 1;
+                        ctl.memread = 0;
+                        ctl.memwrite = 1;
+                        ctl.memtoreg = 0;
+                        ctl.msize = MSIZE4;
+                        im = I_SD;
+                    end
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_ADD:begin
@@ -320,7 +425,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_AND:begin
@@ -335,7 +440,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_OR:begin
@@ -350,7 +455,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_XOR:begin
@@ -365,7 +470,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SLL:begin
@@ -380,7 +485,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SLT:begin
@@ -395,7 +500,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SLTU:begin
@@ -410,7 +515,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SRL:begin
@@ -435,10 +540,10 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
-                    default: ctl = '0;
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_ADDW:begin
@@ -465,7 +570,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SLL:begin
@@ -480,7 +585,7 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
                     F3_SRL:begin
@@ -505,10 +610,10 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
-                            default: ctl = '0;
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
-                    default: ctl = '0;
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
             F7_AUIPC:begin
@@ -533,14 +638,10 @@ module decoder
                         ctl.memtoreg = 0;
                         im = I_JAL;
                     end
-                    default: ctl = '0;
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
-            default: begin
-                ctl = '0;
-                im = I_NULL;
-                op = UNKNOWN;
-            end
+            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
         endcase
         
     end
