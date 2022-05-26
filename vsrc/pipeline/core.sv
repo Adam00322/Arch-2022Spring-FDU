@@ -35,20 +35,23 @@ module core
 
 	creg_addr_t ra1, ra2;
 	word_t rd1, rd2;
-	addr_t PCbranch_nxt;
 	addr_t PCbranch;
 	decode_op_t op;
-	u1 branch_nxt;
 	u1 branch;
 	u1 sctlF;
+	u1 sctlM;
 	u1 stallF;
 	u1 stallD;
 	u1 stallE;
 	u1 stallM;
+	u1 stallW;
+	u1 alustall;
 
 	assign stallF = sctlF | stallD;
-	assign stallD = sctlD.stall | stallE;
-	assign stallE = sctlE.stall | stallM;
+	assign stallD = sctlD.stall | stallE | (sctlF&branch);
+	assign stallE = sctlE.stall | stallM | alustall;
+	assign stallM = sctlM | stallW;
+	assign stallW = ~sctlE.stall & alustall;
 
 	fetch fetch(
 		.clk,.reset,
@@ -63,20 +66,11 @@ module core
 
 
 	always_ff @(posedge clk) begin
-		if(branch_nxt) begin
-			branch <= 1;
-			PCbranch <= PCbranch_nxt;
-		end
 		if(reset) begin
 			dataF <= '0;
-			branch <= 0;
 		end
 		else if(~stallD) begin
-			if(stallF) dataF <= '0;
-			else if(branch)begin
-				dataF <= '0;
-				branch <= 0;
-			end
+			if(stallF | branch) dataF <= '0;
 			else dataF <= dataF_nxt;
 		end	
 	end
@@ -84,8 +78,8 @@ module core
 	decode decode(
 		.dataF,
 		.dataD(dataD_nxt),
-		.PCbranch(PCbranch_nxt),
-		.branch(branch_nxt),
+		.PCbranch(PCbranch),
+		.branch(branch),
 		.op,
 		.rd1,.rd2,.ra1,.ra2,
 		.aluoutE(dataE.aluout),
@@ -103,12 +97,14 @@ module core
 	end
 
 	execute execute(
+		.clk,
 		.dataD,
 		.dataE(dataE_nxt),
 		.aluoutE(dataE.aluout),
 		.aluoutM(dataM.aluout),
 		.memdata(dataM.readdata),
-		.sctlE
+		.sctlE,
+		.alustall
 	);
 
 	always_ff @(posedge clk) begin
@@ -124,12 +120,16 @@ module core
 		.dataM(dataM_nxt),
 		.dresp,
 		.dreq,
-		.stallM
+		.sctlM
 	);
 
 	always_ff @(posedge clk) begin
-		if(reset | stallM) dataM <= '0;
-		else dataM <= dataM_nxt;
+		if(reset) dataM <= '0;
+		else if(~stallW) begin
+			if(stallM) dataM <= '0;
+			else dataM <= dataM_nxt;
+		end
+		else dataM.valid <= '0;
 	end
 
 	writeback writeback(
@@ -145,7 +145,7 @@ module core
 		.dstD(dataD.dst),
 		.dstE(dataE.dst),
 		.dstM(dataM.dst),
-		.memtoregD(dataD.ctl.memtoreg),
+		.memD(dataD.ctl.memtoreg | dataD.ctl.memwrite),
 		.memtoregE(dataE.memtoreg),
 		.memtoregM(dataM.memtoreg),
 		.regwriteD(dataD.ctl.regwrite),

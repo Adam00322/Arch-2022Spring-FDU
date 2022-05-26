@@ -26,13 +26,13 @@ module fetch
     assign sctlF = ireq.valid && ~iresp.data_ok;
 
     always_ff @(posedge clk) begin
-        if(en)begin
-            if(reset) begin
-                pc <= 64'h8000_0000;
-                ireq.valid = 1;
-            end else begin
-                pc <= pc_nxt;
-            end
+        if(reset) begin
+            pc <= 64'h8000_0000;
+            ireq.valid = 1;
+        end
+        else if(en) begin
+            pc <= pc_nxt;
+            ireq.valid = 1;
         end
     end
     

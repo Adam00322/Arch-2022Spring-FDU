@@ -13,12 +13,17 @@ module supercontrol
     input creg_addr_t Dra1, Dra2,
     input decode_op_t op,
     input creg_addr_t dstD,dstE,dstM,
-    input u1 memtoregD, memtoregE, memtoregM, regwriteD, regwriteE, regwriteM,
+    input u1 memD, memtoregE, memtoregM, regwriteD, regwriteE, regwriteM,
     output supercontrol_t sctlD, sctlE
 );
-
+    u1 OP_B, Drelate, Erelate;
+    assign OP_B = op == OP_BEQ || op == OP_JALR || op == OP_BNE || op == OP_BLT || op == OP_BLTU || op == OP_BGE || op == OP_BGEU;
+    assign Drelate = regwriteD && (ra1 == dstD || ra2 == dstD);
+    assign Erelate = memtoregE && (ra1 == dstE || ra2 == dstE);
+    
     always_comb begin
-        if((op == OP_BEQ || op == OP_JALR || op == OP_BNE || op == OP_BLT || op == OP_BLTU || op == OP_BGEU) && (((memtoregD || regwriteD) && (ra1 == dstD || ra2 == dstD)) || (memtoregE && (ra1 == dstE || ra2 == dstE)))) begin
+        sctlD = '0;
+        if((OP_B && (Drelate || Erelate)) || (Erelate && memD && dstD != dstE)) begin
             sctlD.stall = 1;
         end else begin
             sctlD.stall = 0;
@@ -40,6 +45,7 @@ module supercontrol
     end
 
     always_comb begin
+        sctlE = '0;
         if(memtoregE && (Dra1 == dstE || Dra2 == dstE)) begin
             sctlE.stall = 1;
         end else begin

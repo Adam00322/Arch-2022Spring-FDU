@@ -27,6 +27,13 @@ private:
 	 *
 	 * NOTE: you can use BlockMemory, or replace it with anything you like.
 	 */
+	word_t dram[8][2][16];
+	struct meta_t{
+		int age;
+		bool valid;
+		bool dirty;
+		addr_t tag;
+	}meta[8][2];
 #endif
 
 	 // int state;

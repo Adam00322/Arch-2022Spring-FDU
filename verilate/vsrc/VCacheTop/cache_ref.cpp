@@ -25,7 +25,9 @@ void CacheRefModel::reset()
 	/**
 	 * TODO (Lab3) reset reference model :)
 	 */
-
+	for(int i=0; i<8; i++)
+		for(int j=0; j<2; j++)
+			meta[i][j].valid = false;
 #endif
 }
 
@@ -43,8 +45,43 @@ auto CacheRefModel::load(addr_t addr, AXISize size) -> word_t
 	/**
 	 * TODO (Lab3) implement load operation for reference model :)
 	 */
+	// int position;
+	// bool hit;
+	// int index = addr % 1024 / 128;
+	// addr_t tag = addr / 1024;
+	// addr_t start = addr / 128 * 128;
+	// for(int i = 0; i < 2; i++){
+	// 	if(meta[index][i].valid && tag == meta[index][i].tag){
+	// 		hit = true;
+	// 		position = i;
+	// 	}
+	// }
+	// if(!hit){
+	// 	for(int i = 0; i < 2; i++){
+	// 		if(!meta[index][i].valid || meta[index][i].age == 1)
+	// 			position = i;
+	// 	}
+	// 	if(meta[index][position].dirty){
+	// 		addr_t t = (meta[index][position].tag << 10) + (index << 7);
+	// 		for(int i = 0; i < 16; i++) {
+	// 			mem.store(t + 8 * i, dram[index][position][i], 0b11111111);
+	// 		}
+	// 	}
+	// 	for(int i = 0; i < 16; i++) {
+	// 		dram[index][position][i] = mem.load(start + 8 * i);
+	// 	}
+	// 	meta[index][position].dirty = false;
+	// 	meta[index][position].tag = tag;
+	// 	meta[index][position].valid = true;
+	// }
+	// for(int i = 0; i < 2; i++){
+	// 	if(meta[index][i].age < meta[index][position].age)
+	// 		meta[index][i].age++;
+	// }
+	// meta[index][position].age = 0;
 
-	return mem.load(0x0);
+	// return dram[index][position][addr % 128 / 8];
+	return mem.load(addr);
 #endif
 }
 
@@ -69,8 +106,48 @@ void CacheRefModel::store(addr_t addr, AXISize size, word_t strobe, word_t data)
 	/**
 	 * TODO (Lab3) implement store operation for reference model :)
 	 */
+	// int position;
+	// bool hit;
+	// int index = addr % 1024 / 128;
+	// addr_t tag = addr / 1024;
+	// addr_t start = addr / 128 * 128;
+	// for(int i = 0; i < 2; i++){
+	// 	if(meta[index][i].valid && tag == meta[index][i].tag){
+	// 		hit = true;
+	// 		position = i;
+	// 	}
+	// }
+	// if(!hit){
+	// 	for(int i = 0; i < 2; i++){
+	// 		if(!meta[index][i].valid || meta[index][i].age == 1)
+	// 			position = i;
+	// 	}
+	// 	if(meta[index][position].dirty){
+	// 		addr_t t = (meta[index][position].tag << 10) + (index << 7);
+	// 		for(int i = 0; i < 16; i++) {
+	// 			mem.store(t + 8 * i, dram[index][position][i], UINT64_MAX);
+	// 		}
+	// 	}
+	// 	for(int i = 0; i < 16; i++) {
+	// 		dram[index][position][i] = mem.load(start + 8 * i);
+	// 	}
+	// 	meta[index][position].tag = tag;
+	// 	meta[index][position].valid = true;
+	// }
+	// for(int i = 0; i < 2; i++){
+	// 	if(meta[index][i].age < meta[index][position].age)
+	// 		meta[index][i].age++;
+	// }
 
-	mem.store(0x0, 0xdeadbeef, 0b1111);
+	auto mask1 = STROBE_TO_MASK[strobe & 0xf];
+	auto mask2 = STROBE_TO_MASK[((strobe) >> 4) & 0xf];
+	auto mask = (mask2 << 32) | mask1;
+	// auto &value = dram[index][position][addr % 128 / 8];
+	// value = (data & mask) | (value & ~mask);
+
+	// meta[index][position].dirty = true;
+	// meta[index][position].age = 0;
+	mem.store(addr, data, mask);
 #endif
 }
 

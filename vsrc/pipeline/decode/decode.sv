@@ -53,7 +53,7 @@ module decode
             I_JAL: imm = dataF.pc+4;
             I_BEQ: imm = {{52{raw_instr[31]}}, raw_instr[7], raw_instr[30:25], raw_instr[11:8], 1'b0};
             I_AUIPC: imm = {{32{raw_instr[31]}}, raw_instr[31:12], 12'b000000000000} + dataF.pc;
-            I_SLLI: imm[5:0] = raw_instr[25:20];
+            I_SLLI: imm = {58'b0, raw_instr[25:20]};
             default: imm = 0;
         endcase
     end
@@ -79,6 +79,7 @@ module decode
     end
 
     always_comb begin
+        PCbranch = '0;
         unique case (op)
             OP_BEQ:begin
                 if(dataD.srca==dataD.srcb)begin

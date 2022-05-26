@@ -21,6 +21,8 @@ module decoder
 
     always_comb begin
         ctl = '0;
+        im = I_NULL;
+        op = UNKNOWN;
         unique case (f7)
             F7_ADDI:begin
                 unique case (f3)
@@ -425,6 +427,16 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
+                            F7_MUL_2:begin
+                                op = OP_MUL;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_MUL;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
                             default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
@@ -434,6 +446,16 @@ module decoder
                                 op = OP_AND;
                                 ctl.regwrite = 1;
                                 ctl.alufunc = ALU_AND;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            F7_REMU_2:begin
+                                op = OP_REMU;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_REMU;
                                 ctl.alusrc = 0;
                                 ctl.memread = 0;
                                 ctl.memwrite = 0;
@@ -455,6 +477,16 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
+                            F7_REM_2:begin
+                                op = OP_REM;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_REM;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
                             default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
@@ -464,6 +496,16 @@ module decoder
                                 op = OP_XOR;
                                 ctl.regwrite = 1;
                                 ctl.alufunc = ALU_XOR;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            F7_DIV_2:begin
+                                op = OP_DIV;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_DIV;
                                 ctl.alusrc = 0;
                                 ctl.memread = 0;
                                 ctl.memwrite = 0;
@@ -540,6 +582,16 @@ module decoder
                                 ctl.memtoreg = 0;
                                 im = I_NULL;
                             end
+                            F7_DIVU_2:begin
+                                op = OP_DIVU;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_DIVU;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
                             default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                         endcase
                     end
@@ -564,6 +616,61 @@ module decoder
                                 op = OP_SUBW;
                                 ctl.regwrite = 1;
                                 ctl.alufunc = ALU_SUBW;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            F7_MUL_2:begin
+                                op = OP_MULW;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_MULW;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
+                        endcase
+                    end
+                    F3_AND:begin
+                        unique case (f7_2)
+                            F7_REMU_2:begin
+                                op = OP_REMUW;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_REMUW;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
+                        endcase
+                    end
+                    F3_OR:begin
+                        unique case (f7_2)
+                            F7_REM_2:begin
+                                op = OP_REMW;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_REMW;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
+                        endcase
+                    end
+                    F3_XOR:begin
+                        unique case (f7_2)
+                            F7_DIV_2:begin
+                                op = OP_DIVW;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_DIVW;
                                 ctl.alusrc = 0;
                                 ctl.memread = 0;
                                 ctl.memwrite = 0;
@@ -604,6 +711,16 @@ module decoder
                                 op = OP_SRAW;
                                 ctl.regwrite = 1;
                                 ctl.alufunc = ALU_SRAW;
+                                ctl.alusrc = 0;
+                                ctl.memread = 0;
+                                ctl.memwrite = 0;
+                                ctl.memtoreg = 0;
+                                im = I_NULL;
+                            end
+                            F7_DIVU_2:begin
+                                op = OP_DIVUW;
+                                ctl.regwrite = 1;
+                                ctl.alufunc = ALU_DIVUW;
                                 ctl.alusrc = 0;
                                 ctl.memread = 0;
                                 ctl.memwrite = 0;

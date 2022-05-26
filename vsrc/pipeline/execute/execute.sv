@@ -10,13 +10,15 @@
 module execute
     import common::*;
     import pipes::*;(
+    input logic clk,
     input decode_data_t dataD,
     output execute_data_t dataE,
 
     input word_t aluoutE,
     input word_t aluoutM,
     input word_t memdata,
-    input supercontrol_t sctlE
+    input supercontrol_t sctlE,
+    output u1 alustall
 );
     word_t a,b,tb;
 
@@ -58,10 +60,13 @@ module execute
     end
 
     alu alu(
+        .clk,
         .a,
         .b,
         .alufunc(dataD.ctl.alufunc),
-        .c(dataE.aluout)
+        .c(dataE.aluout),
+        .alustall,
+        .stallE(sctlE.stall)
     );
     
 endmodule

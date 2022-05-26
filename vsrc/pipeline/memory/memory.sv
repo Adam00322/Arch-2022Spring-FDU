@@ -16,7 +16,7 @@ module memory
 
     input dbus_resp_t dresp,
     output dbus_req_t dreq,
-    output u1 stallM
+    output u1 sctlM
 );
     strobe_t strobe;
 
@@ -32,7 +32,7 @@ module memory
     assign dreq.valid = dataE.memtoreg | dataE.memwrite;
     assign dreq.addr = dataE.aluout;
     assign dreq.size = dataE.msize;
-    assign stallM = dreq.valid && ~dresp.data_ok;
+    assign sctlM = dreq.valid && ~dresp.data_ok;
 
 
     always_comb begin

@@ -17,7 +17,7 @@ parameter F7_JAL = 7'b1101111;//no f3
 parameter F7_BEQ = 7'b1100011;//BNE,BLT,BGE,BLTU,BGEU
 parameter F7_LD = 7'b0000011;//LB,LH,LW
 parameter F7_SD = 7'b0100011;
-parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR,SLL
+parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR,SLL,MUL,DIV,DIVU,REM,REMU
 parameter F7_ADDW = 7'b0111011;//f3 same as ADD
 parameter F7_AUIPC = 7'b0010111;//no f3
 parameter F7_JALR = 7'b1100111;
@@ -52,30 +52,39 @@ parameter F3_SH = 3'b001;
 parameter F3_SW = 3'b010;
 parameter F3_SD = 3'b011;
 
-parameter F3_ADD = 3'b000;//SUB
+parameter F3_ADD = 3'b000;//SUB,MUL
 // parameter F3_SUB = 3'b000;
-parameter F3_AND = 3'b111;
-parameter F3_OR = 3'b110;
-parameter F3_XOR = 3'b100;
+parameter F3_AND = 3'b111;//REMU
+parameter F3_OR = 3'b110;//REM
+parameter F3_XOR = 3'b100;//DIV
 parameter F3_SLL = 3'b001;
 parameter F3_SLT = 3'b010;
 parameter F3_SLTU = 3'b011;
-parameter F3_SRL = 3'b101;//SRA
+parameter F3_SRL = 3'b101;//SRA,DIVU
 
 parameter F3_JALR = 3'b000;
 
 
 parameter F7_ADD_2 = 7'b0000000;
 parameter F7_SUB_2 = 7'b0100000;
+parameter F7_MUL_2 = 7'b0000001;
+
 parameter F7_AND_2 = 7'b0000000;
+parameter F7_REMU_2 = 7'b0000001;
+
 parameter F7_OR_2 = 7'b0000000;
+parameter F7_REM_2 = 7'b0000001;
+
 parameter F7_XOR_2 = 7'b0000000;
-//parameter F7_ADD_2 = 7'b0000000;
+parameter F7_DIV_2 = 7'b0000001;
+
 parameter F7_SLL_2 = 7'b0000000;
 parameter F7_SLT_2 = 7'b0000000;
 parameter F7_SLTU_2 = 7'b0000000;
+
 parameter F7_SRL_2 = 7'b0000000;
 parameter F7_SRA_2 = 7'b0100000;
+parameter F7_DIVU_2 = 7'b0000001;
 
 
 parameter F6_SLLI = 6'b000000;
@@ -102,7 +111,17 @@ typedef enum logic [4:0] {
     ALU_SUBW,
     ALU_SLLW,
     ALU_SRLW,
-    ALU_SRAW
+    ALU_SRAW,
+    ALU_MUL,
+    ALU_DIV,
+    ALU_REM,
+    ALU_DIVU,
+    ALU_REMU,
+    ALU_MULW,
+    ALU_DIVW,
+    ALU_REMW,
+    ALU_DIVUW,
+    ALU_REMUW
 } alufunc_t;
 
 typedef enum logic[7:0] {
@@ -155,7 +174,17 @@ typedef enum logic[7:0] {
     OP_LWU,
     OP_SB,
     OP_SH,
-    OP_SW
+    OP_SW,
+    OP_MUL,
+    OP_DIV,
+    OP_REM,
+    OP_DIVU,
+    OP_REMU,
+    OP_MULW,
+    OP_DIVW,
+    OP_REMW,
+    OP_DIVUW,
+    OP_REMUW
 } decode_op_t;
 
 typedef struct packed {
