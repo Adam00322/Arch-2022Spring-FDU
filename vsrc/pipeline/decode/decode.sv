@@ -16,7 +16,9 @@ module decode
     output addr_t PCbranch,
     output u1 branch,
     output decode_op_t op,
-    
+
+    input word_t rd,
+    output csr_addr_t ra,
     input word_t rd1,rd2,
     output creg_addr_t ra1,ra2,
 
@@ -33,8 +35,7 @@ module decode
     assign raw_instr = dataF.raw_instr;
 
     assign dataD.valid = dataF.valid;
-    // assign dataD.srca = rd1;
-    // assign dataD.srcb = rd2;
+    assign ra = raw_instr[31:20];
     assign ra1 = raw_instr[19:15];
     assign ra2 = raw_instr[24:20];
     assign dataD.dst = raw_instr[11:7];
@@ -54,6 +55,7 @@ module decode
             I_BEQ: imm = {{52{raw_instr[31]}}, raw_instr[7], raw_instr[30:25], raw_instr[11:8], 1'b0};
             I_AUIPC: imm = {{32{raw_instr[31]}}, raw_instr[31:12], 12'b000000000000} + dataF.pc;
             I_SLLI: imm = {58'b0, raw_instr[25:20]};
+            I_CSR: imm = rd;
             default: imm = 0;
         endcase
     end
@@ -126,6 +128,49 @@ module decode
                 branch = 1;
             end
             default: branch = 0;
+        endcase
+    end
+
+    always_comb begin
+        dataD.csr = '0;
+        unique case (op)
+            UNKNOWN: begin
+                
+            end
+            OP_CSRRW: begin
+                dataD.csr.wvalid = 1;
+                dataD.csr.wa = ra;
+                dataD.csr.wd = dataD.srca;
+            end
+            OP_CSRRS: begin
+                dataD.csr.wvalid = 1;
+                dataD.csr.wa = ra;
+                dataD.csr.wd = rd | dataD.srca;
+            end
+            OP_CSRRC: begin
+                dataD.csr.wvalid = 1;
+                dataD.csr.wa = ra;
+                dataD.csr.wd = rd & ~dataD.srca;
+            end
+            OP_CSRRWI: begin
+                dataD.csr.wvalid = 1;
+                dataD.csr.wa = ra;
+                dataD.csr.wd = {59'b0,raw_instr[19:15]};
+            end
+            OP_CSRRSI: begin
+                dataD.csr.wvalid = 1;
+                dataD.csr.wa = ra;
+                dataD.csr.wd = rd | {59'b0,raw_instr[19:15]};
+            end
+            OP_CSRRCI: begin
+                dataD.csr.wvalid = 1;
+                dataD.csr.wa = ra;
+                dataD.csr.wd = rd & ~{59'b0,raw_instr[19:15]};
+            end
+            OP_MRET: begin
+                dataD.csr.is_mret = 1;
+            end
+            default: dataD.csr = '0;
         endcase
     end
 

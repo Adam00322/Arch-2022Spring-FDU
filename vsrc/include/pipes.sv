@@ -20,7 +20,8 @@ parameter F7_SD = 7'b0100011;
 parameter F7_ADD = 7'b0110011;//SUB,AND,OR,XOR,SLL,MUL,DIV,DIVU,REM,REMU
 parameter F7_ADDW = 7'b0111011;//f3 same as ADD
 parameter F7_AUIPC = 7'b0010111;//no f3
-parameter F7_JALR = 7'b1100111;
+parameter F7_JALR = 7'b1100111; 
+parameter F7_CSRRW = 7'b1110011;
 
 
 parameter F3_ADDI = 3'b000;
@@ -64,6 +65,14 @@ parameter F3_SRL = 3'b101;//SRA,DIVU
 
 parameter F3_JALR = 3'b000;
 
+parameter F3_MRET = 3'b000;//ECALL
+parameter F3_CSRRW = 3'b001;
+parameter F3_CSRRS = 3'b010;
+parameter F3_CSRRC = 3'b011;
+parameter F3_CSRRWI = 3'b101;
+parameter F3_CSRRSI = 3'b110;
+parameter F3_CSRRCI = 3'b111;
+
 
 parameter F7_ADD_2 = 7'b0000000;
 parameter F7_SUB_2 = 7'b0100000;
@@ -85,6 +94,9 @@ parameter F7_SLTU_2 = 7'b0000000;
 parameter F7_SRL_2 = 7'b0000000;
 parameter F7_SRA_2 = 7'b0100000;
 parameter F7_DIVU_2 = 7'b0000001;
+
+parameter F7_MRET_2 = 7'b0011000;
+parameter F7_ECALL_2 = 7'b0000000;
 
 
 parameter F6_SLLI = 6'b000000;
@@ -184,7 +196,15 @@ typedef enum logic[7:0] {
     OP_DIVW,
     OP_REMW,
     OP_DIVUW,
-    OP_REMUW
+    OP_REMUW,
+    OP_CSRRW,
+    OP_CSRRS,
+    OP_CSRRC,
+    OP_CSRRWI,
+    OP_CSRRSI,
+    OP_CSRRCI,
+    OP_MRET,
+    OP_ECALL
 } decode_op_t;
 
 typedef struct packed {
@@ -207,8 +227,17 @@ typedef enum logic[4:0] {
     I_BEQ,
     I_AUIPC,
     I_JALR,
-    I_SLLI
+    I_SLLI,
+    I_CSR
 } im_t;
+
+typedef struct packed {
+    u1 error;
+    u1 wvalid;
+    csr_addr_t wa;
+    word_t wd;
+    u1 is_mret;
+} csr_t;
 
 typedef struct packed {
     u1 valid;
@@ -224,6 +253,7 @@ typedef struct packed {
 	control_t ctl;
     creg_addr_t dst;
     creg_addr_t ra1,ra2;
+    csr_t csr;
 } decode_data_t;
 
 typedef struct packed {
@@ -239,6 +269,7 @@ typedef struct packed {
     word_t writedata;
     creg_addr_t dst;
     msize_t msize;
+    csr_t csr;
 } execute_data_t;
 
 typedef struct packed {
@@ -251,6 +282,7 @@ typedef struct packed {
     word_t aluout;
     creg_addr_t dst;
     u1 skip;
+    csr_t csr;
 } memory_data_t;
 
 typedef struct packed {
@@ -261,6 +293,7 @@ typedef struct packed {
     u1 regwrite;
     word_t wdata;
     creg_addr_t dst;
+    csr_t csr;
 } writeback_data_t;
 
 typedef enum logic[3:0] {

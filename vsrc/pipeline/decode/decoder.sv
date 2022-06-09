@@ -758,6 +758,64 @@ module decoder
                     default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
                 endcase
             end
+            F7_CSRRW:begin
+                unique case (f3)
+                    F3_CSRRW:begin
+                        op = OP_CSRRW;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 1;
+                        im = I_CSR;
+                    end
+                    F3_CSRRS:begin
+                        op = OP_CSRRS;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 1;
+                        im = I_CSR;
+                    end
+                    F3_CSRRC:begin
+                        op = OP_CSRRC;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 1;
+                        im = I_CSR;
+                    end
+                    F3_CSRRWI:begin
+                        op = OP_CSRRWI;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 1;
+                        im = I_CSR;
+                    end
+                    F3_CSRRSI:begin
+                        op = OP_CSRRSI;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 1;
+                        im = I_CSR;
+                    end
+                    F3_CSRRCI:begin
+                        op = OP_CSRRCI;
+                        ctl.regwrite = 1;
+                        ctl.alufunc = NULL;
+                        ctl.alusrc = 1;
+                        im = I_CSR;
+                    end
+                    F3_MRET: begin
+                        unique case (f7_2)
+                            F7_MRET_2: begin
+                                op = OP_MRET;
+                            end
+                            F7_ECALL_2: begin
+                                op = OP_ECALL;
+                            end
+                            default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
+                        endcase
+                    end
+                    default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
+                endcase
+            end
             default: begin ctl = '0; im = I_NULL; op = UNKNOWN; end
         endcase
         

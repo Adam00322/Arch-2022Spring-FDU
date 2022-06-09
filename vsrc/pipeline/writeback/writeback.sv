@@ -19,6 +19,7 @@ module writeback
     assign dataW.pc = dataM.pc;
     assign dataW.dst = dataM.dst;
     assign dataW.regwrite = dataM.regwrite;
+    assign dataW.csr = dataM.csr;
 
     always_comb begin
         if(dataM.memtoreg) dataW.wdata = dataM.readdata;

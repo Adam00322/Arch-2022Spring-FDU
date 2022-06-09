@@ -4,6 +4,7 @@
 `include "include/common.sv"
 `include "include/pipes.sv"
 `include "pipeline/regfile/regfile.sv"
+`include "pipeline/regfile/csr.sv"
 `include "pipeline/fetch/fetch.sv"
 `include "pipeline/decode/decode.sv"
 `include "pipeline/execute/execute.sv"
@@ -21,7 +22,8 @@ module core
 	output ibus_req_t  ireq,
 	input  ibus_resp_t iresp,
 	output dbus_req_t  dreq,
-	input  dbus_resp_t dresp
+	input  dbus_resp_t dresp,
+	input logic trint, swint, exint
 );
 	/* TODO: Add your pipeline here. */
 	
@@ -35,7 +37,10 @@ module core
 
 	creg_addr_t ra1, ra2;
 	word_t rd1, rd2;
+	csr_addr_t ra;
+	word_t rd;
 	addr_t PCbranch;
+	addr_t pcselect;
 	decode_op_t op;
 	u1 branch;
 	u1 sctlF;
@@ -81,6 +86,7 @@ module core
 		.PCbranch(PCbranch),
 		.branch(branch),
 		.op,
+		.rd,.ra,
 		.rd1,.rd2,.ra1,.ra2,
 		.aluoutE(dataE.aluout),
 		.aluoutM(dataM.aluout),
@@ -166,6 +172,18 @@ module core
 		.wd(dataW.wdata)
 	);
 
+	csr csr(
+		.clk, .reset,
+		.ra,
+		.rd,
+		.wvalid(dataW.csr.wvalid),
+		.wa(dataW.csr.wa),
+		.wd(dataW.csr.wd),
+		.is_mret(dataW.csr.is_mret),
+		.error(dataW.csr.error)
+		.pcselect
+	);
+
 `ifdef VERILATOR
 	DifftestInstrCommit DifftestInstrCommit(
 		.clock              (clk),
@@ -232,21 +250,21 @@ module core
 	DifftestCSRState DifftestCSRState(
 		.clock              (clk),
 		.coreid             (0),
-		.priviledgeMode     (3),
-		.mstatus            (0),
-		.sstatus            (0),
-		.mepc               (0),
+		.priviledgeMode     (csr.mode_nxt),
+		.mstatus            (csr.regs_nxt.mstatus),
+		.sstatus            (csr.regs_nxt.mstatus & 64'h800000030001e000),
+		.mepc               (csr.regs_nxt.mepc),
 		.sepc               (0),
-		.mtval              (0),
+		.mtval              (csr.regs_nxt.mtval),
 		.stval              (0),
-		.mtvec              (0),
+		.mtvec              (csr.regs_nxt.mtvec),
 		.stvec              (0),
-		.mcause             (0),
+		.mcause             (csr.regs_nxt.mcause),
 		.scause             (0),
 		.satp               (0),
-		.mip                (0),
-		.mie                (0),
-		.mscratch           (0),
+		.mip                (csr.regs_nxt.mip),
+		.mie                (csr.regs_nxt.mie),
+		.mscratch           (csr.regs_nxt.mscratch),
 		.sscratch           (0),
 		.mideleg            (0),
 		.medeleg            (0)

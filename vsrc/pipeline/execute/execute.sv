@@ -33,6 +33,7 @@ module execute
     assign dataE.dst = dataD.dst;
     assign dataE.msize = dataD.ctl.msize;
     assign dataE.mem_unsigned = dataD.ctl.mem_unsigned;
+    assign dataE.csr = dataD.csr;
 
     always_comb begin
         unique case (sctlE.ac)

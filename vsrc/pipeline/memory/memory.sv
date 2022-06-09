@@ -27,6 +27,7 @@ module memory
     assign dataM.memtoreg = dataE.memtoreg;
     assign dataM.pc = dataE.pc;
     assign dataM.aluout = dataE.aluout;
+    assign dataM.csr = dataE.csr;
     assign dataM.skip = (dataE.memtoreg | dataE.memwrite) & (dataE.aluout[31]==0);
 
     assign dreq.valid = dataE.memtoreg | dataE.memwrite;
