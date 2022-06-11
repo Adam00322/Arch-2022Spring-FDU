@@ -12,11 +12,13 @@ module writedata
 	input u64 _wd,
 	input msize_t msize,
 	output u64 wd,
-	output strobe_t strobe
+	output strobe_t strobe,
+	output u1 error
 );
 	always_comb begin
 		strobe = '0;
 		wd = '0;
+		error = 0;
 		unique case(msize)
 			MSIZE1: begin
 				unique case(addr)
@@ -79,6 +81,7 @@ module writedata
 						
 					end
 				endcase
+				error = addr[0];
 			end
 			MSIZE4: begin
 				unique case(addr[2])
@@ -94,11 +97,12 @@ module writedata
 						
 					end
 				endcase
-				
+				error = addr[1] | addr[0];
 			end
 			MSIZE8: begin
 				wd = _wd;
 				strobe = '1;
+				error = addr[2] | addr[1] | addr[0];
 			end
 			default: begin
 				

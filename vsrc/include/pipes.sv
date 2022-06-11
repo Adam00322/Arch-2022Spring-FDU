@@ -233,6 +233,7 @@ typedef enum logic[4:0] {
 
 typedef struct packed {
     u1 error;
+    u4 code;
     u1 wvalid;
     csr_addr_t wa;
     word_t wd;
@@ -243,6 +244,7 @@ typedef struct packed {
     u1 valid;
 	u32 raw_instr;
 	addr_t pc;
+    csr_t csr;
 } fetch_data_t;
 
 typedef struct packed {

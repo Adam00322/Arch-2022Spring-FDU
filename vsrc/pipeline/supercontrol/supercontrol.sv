@@ -16,14 +16,14 @@ module supercontrol
     input u1 memD, memtoregE, memtoregM, regwriteD, regwriteE, regwriteM,
     output supercontrol_t sctlD, sctlE
 );
-    u1 OP_B, Drelate, Erelate;
-    assign OP_B = op == OP_BEQ || op == OP_JALR || op == OP_BNE || op == OP_BLT || op == OP_BLTU || op == OP_BGE || op == OP_BGEU;
+    u1 OP, Drelate, Erelate;
+    assign OP = op == OP_BEQ || op == OP_JALR || op == OP_BNE || op == OP_BLT || op == OP_BLTU || op == OP_BGE || op == OP_BGEU || op == OP_CSRRW || op == OP_CSRRS || op == OP_CSRRC;
     assign Drelate = regwriteD && (ra1 == dstD || ra2 == dstD);
     assign Erelate = memtoregE && (ra1 == dstE || ra2 == dstE);
     
     always_comb begin
         sctlD = '0;
-        if((OP_B && (Drelate || Erelate)) || (Erelate && memD && dstD != dstE)) begin
+        if((OP && (Drelate || Erelate)) || (Erelate && memD && dstD != dstE)) begin
             sctlD.stall = 1;
         end else begin
             sctlD.stall = 0;

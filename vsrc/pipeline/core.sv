@@ -40,7 +40,7 @@ module core
 	csr_addr_t ra;
 	word_t rd;
 	addr_t PCbranch;
-	addr_t pcselect;
+	addr_t PCselect;
 	decode_op_t op;
 	u1 branch;
 	u1 sctlF;
@@ -51,12 +51,18 @@ module core
 	u1 stallM;
 	u1 stallW;
 	u1 alustall;
+	u2 mode;
+	u1 interrupt;
+	u1 flush;
+	u1 stall;
 
-	assign stallF = sctlF | stallD;
-	assign stallD = sctlD.stall | stallE | (sctlF&branch);
-	assign stallE = sctlE.stall | stallM | alustall;
+	assign stallF = sctlF | stallD | (dataD_nxt.csr.error | dataD_nxt.csr.wvalid | dataD_nxt.csr.is_mret);
+	assign stallD = sctlD.stall | stallE | (sctlF&branch) | (dataE_nxt.csr.error | dataE_nxt.csr.wvalid | dataE_nxt.csr.is_mret);
+	assign stallE = sctlE.stall | stallM | alustall | (dataM_nxt.csr.error | dataM_nxt.csr.wvalid | dataM_nxt.csr.is_mret);
 	assign stallM = sctlM | stallW;
-	assign stallW = ~sctlE.stall & alustall;
+	assign stallW = (~sctlE.stall & alustall) | stall;
+	assign stall = dataW.csr.error | dataW.csr.wvalid | dataW.csr.is_mret;
+	assign flush = (interrupt | stall) && ~sctlF && ~sctlM && dataW.pc!=0;
 
 	fetch fetch(
 		.clk,.reset,
@@ -65,13 +71,14 @@ module core
 		.dataF(dataF_nxt),
 		.branch,
 		.PCbranch,
+		.flush,
+		.PCselect,
 		.en(~stallF),
 		.sctlF
 	);
 
-
 	always_ff @(posedge clk) begin
-		if(reset) begin
+		if(reset | flush) begin
 			dataF <= '0;
 		end
 		else if(~stallD) begin
@@ -91,11 +98,12 @@ module core
 		.aluoutE(dataE.aluout),
 		.aluoutM(dataM.aluout),
 		.memdata(dataM.readdata),
-		.sctlD
+		.sctlD,
+		.mode
 	);
 
 	always_ff @(posedge clk) begin
-		if(reset) dataD <= '0;
+		if(reset | flush) dataD <= '0;
 		else if (~stallE) begin
 			if(stallD) dataD <= '0;
 			else dataD <= dataD_nxt;
@@ -114,7 +122,7 @@ module core
 	);
 
 	always_ff @(posedge clk) begin
-		if(reset) dataE <= '0;
+		if(reset | flush) dataE <= '0;
 		else if(~stallM) begin
 			if(stallE) dataE <= '0;
 			else dataE <= dataE_nxt;
@@ -126,11 +134,12 @@ module core
 		.dataM(dataM_nxt),
 		.dresp,
 		.dreq,
-		.sctlM
+		.sctlM,
+		.stall
 	);
 
 	always_ff @(posedge clk) begin
-		if(reset) dataM <= '0;
+		if(reset | flush) dataM <= '0;
 		else if(~stallW) begin
 			if(stallM) dataM <= '0;
 			else dataM <= dataM_nxt;
@@ -176,12 +185,15 @@ module core
 		.clk, .reset,
 		.ra,
 		.rd,
-		.wvalid(dataW.csr.wvalid),
-		.wa(dataW.csr.wa),
-		.wd(dataW.csr.wd),
-		.is_mret(dataW.csr.is_mret),
-		.error(dataW.csr.error)
-		.pcselect
+		.csr(dataW.csr),
+		.pc(dataW.pc),
+		.trint,
+		.swint,
+		.exint,
+		.mode,
+		.interrupt,
+		.stall(sctlF | sctlM),
+		.PCselect
 	);
 
 `ifdef VERILATOR

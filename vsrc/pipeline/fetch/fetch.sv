@@ -4,7 +4,6 @@
 `ifdef VERILATOR
 `include "include/common.sv"
 `include "include/pipes.sv"
-`include "pipeline/fetch/pcselect.sv"
 `endif
 
 module fetch
@@ -17,6 +16,8 @@ module fetch
     output fetch_data_t dataF,
     input logic branch,
     input addr_t PCbranch,
+    input logic flush,
+    input addr_t PCselect,
     input u1 en,
     output u1 sctlF
 );
@@ -28,30 +29,33 @@ module fetch
     always_ff @(posedge clk) begin
         if(reset) begin
             pc <= 64'h8000_0000;
-            ireq.valid = 1;
         end
-        else if(en) begin
+        else if(en | flush) begin
             pc <= pc_nxt;
-            ireq.valid = 1;
         end
     end
     
     always_comb begin
-        if(branch) begin
+        dataF.csr = '0;
+        ireq.valid = 1;
+        if(pc[0] | pc[1]) begin
+            ireq.valid = 0;
+            dataF.csr.error = 1;
+            dataF.csr.code = 0;
+        end
+    end
+
+    always_comb begin
+        if (flush) begin
+            pc_nxt = PCselect;
+        end else if(branch) begin
             pc_nxt = PCbranch;
         end else begin
             pc_nxt = pc+4;
         end
     end
 
-    // pcselect pcselect(
-    //     .pcplus4(pc+4),
-	// 	.branch,
-	// 	.PCbranch,
-    //     .pc_selected(pc_nxt)
-    // );
-
-    assign dataF.valid = 1;
+    assign dataF.valid = ireq.valid;
     assign dataF.raw_instr = iresp.data;
     assign dataF.pc = pc;
     

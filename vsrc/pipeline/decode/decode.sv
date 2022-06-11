@@ -25,7 +25,8 @@ module decode
     input word_t aluoutE,
     input word_t aluoutM,
     input word_t memdata,
-    input supercontrol_t sctlD
+    input supercontrol_t sctlD,
+    input u2 mode
 );
     u32  raw_instr;
     u64 imm;
@@ -60,15 +61,15 @@ module decode
         endcase
     end
 
-    always_comb begin
-        unique case (sctlD.ac)
-            RD: dataD.srca = rd1;
-            ALUOUTE: dataD.srca = aluoutE;
-            ALUOUTM: dataD.srca = aluoutM;
-            MEMDATA: dataD.srca = memdata;
-            default: dataD.srca = rd1;
-        endcase
-    end
+    // always_comb begin
+    //     unique case (sctlD.ac)
+    //         RD: dataD.srca = rd1;
+    //         ALUOUTE: dataD.srca = aluoutE;
+    //         ALUOUTM: dataD.srca = aluoutM;
+    //         MEMDATA: dataD.srca = memdata;
+    //         default: dataD.srca = rd1;
+    //     endcase
+    // end
 
     always_comb begin
         unique case (sctlD.bc)
@@ -132,46 +133,66 @@ module decode
     end
 
     always_comb begin
-        dataD.csr = '0;
-        unique case (op)
-            UNKNOWN: begin
-                
-            end
-            OP_CSRRW: begin
-                dataD.csr.wvalid = 1;
-                dataD.csr.wa = ra;
-                dataD.csr.wd = dataD.srca;
-            end
-            OP_CSRRS: begin
-                dataD.csr.wvalid = 1;
-                dataD.csr.wa = ra;
-                dataD.csr.wd = rd | dataD.srca;
-            end
-            OP_CSRRC: begin
-                dataD.csr.wvalid = 1;
-                dataD.csr.wa = ra;
-                dataD.csr.wd = rd & ~dataD.srca;
-            end
-            OP_CSRRWI: begin
-                dataD.csr.wvalid = 1;
-                dataD.csr.wa = ra;
-                dataD.csr.wd = {59'b0,raw_instr[19:15]};
-            end
-            OP_CSRRSI: begin
-                dataD.csr.wvalid = 1;
-                dataD.csr.wa = ra;
-                dataD.csr.wd = rd | {59'b0,raw_instr[19:15]};
-            end
-            OP_CSRRCI: begin
-                dataD.csr.wvalid = 1;
-                dataD.csr.wa = ra;
-                dataD.csr.wd = rd & ~{59'b0,raw_instr[19:15]};
-            end
-            OP_MRET: begin
-                dataD.csr.is_mret = 1;
-            end
-            default: dataD.csr = '0;
+        unique case (sctlD.ac)
+            RD: dataD.srca = rd1;
+            ALUOUTE: dataD.srca = aluoutE;
+            ALUOUTM: dataD.srca = aluoutM;
+            MEMDATA: dataD.srca = memdata;
+            default: dataD.srca = rd1;
         endcase
+        dataD.csr = dataF.csr;
+        if ((raw_instr == 32'h5006b) || ~dataF.valid)begin end
+        else if (dataF.csr.error != 1) begin
+            unique case (op)
+                UNKNOWN: begin
+                    dataD.csr.error = 1;
+                    dataD.csr.code = 2;
+                end
+                OP_CSRRW: begin
+                    dataD.csr.wvalid = 1;
+                    dataD.csr.wa = ra;
+                    dataD.csr.wd = dataD.srca;
+                end
+                OP_CSRRS: begin
+                    dataD.csr.wvalid = 1;
+                    dataD.csr.wa = ra;
+                    dataD.csr.wd = rd | dataD.srca;
+                end
+                OP_CSRRC: begin
+                    dataD.csr.wvalid = 1;
+                    dataD.csr.wa = ra;
+                    dataD.csr.wd = rd & ~dataD.srca;
+                end
+                OP_CSRRWI: begin
+                    dataD.csr.wvalid = 1;
+                    dataD.csr.wa = ra;
+                    dataD.csr.wd = {59'b0,raw_instr[19:15]};
+                end
+                OP_CSRRSI: begin
+                    dataD.csr.wvalid = 1;
+                    dataD.csr.wa = ra;
+                    dataD.csr.wd = rd | {59'b0,raw_instr[19:15]};
+                end
+                OP_CSRRCI: begin
+                    dataD.csr.wvalid = 1;
+                    dataD.csr.wa = ra;
+                    dataD.csr.wd = rd & ~{59'b0,raw_instr[19:15]};
+                end
+                OP_MRET: begin
+                    dataD.csr.is_mret = 1;
+                end
+                OP_ECALL: begin
+                    dataD.csr.error = 1;
+                    unique case (mode)
+                        2'b00: dataD.csr.code = 8;
+                        2'b01: dataD.csr.code = 9;
+                        2'b11: dataD.csr.code = 11;
+                        default: begin end
+                    endcase
+                end
+                default: dataD.csr = '0;
+            endcase
+        end
     end
 
     decoder decoder(

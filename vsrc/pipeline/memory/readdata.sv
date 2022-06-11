@@ -12,7 +12,8 @@ module readdata
 	output u64 rd,
 	input u3 addr,
 	input msize_t msize,
-	input u1 mem_unsigned
+	input u1 mem_unsigned,
+	output u1 error
 );
 	u1 sign_bit;
 	always_comb begin
@@ -98,6 +99,24 @@ module readdata
 			end
 			MSIZE8: begin
 				rd = _rd;
+			end
+			default: begin
+				
+			end
+		endcase
+	end
+
+	always_comb begin
+		error = '0;
+		unique case(msize)
+			MSIZE2: begin
+				error = addr[0];
+			end
+			MSIZE4: begin
+				error = addr[1] | addr[0];
+			end
+			MSIZE8: begin
+				error = addr[2] | addr[1] | addr[0];
 			end
 			default: begin
 				

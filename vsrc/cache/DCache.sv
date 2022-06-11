@@ -151,7 +151,6 @@ module DCache
                 end
 
                 FETCH: if (cresp.ready) begin
-                    //$display("%x",creq.addr);
                     state  <= cresp.last ? INIT : FETCH;
                     offset_cnt <= offset_cnt + 1;
                 end

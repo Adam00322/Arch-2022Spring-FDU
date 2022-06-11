@@ -26,6 +26,11 @@ module writeback
         else dataW.wdata = dataM.aluout;
     end
 
+    // always_comb begin
+    //     assign dataW.valid = dataM.valid;
+    //     if(dataW.csr.error) dataW.valid = 0;
+    // end
+
 endmodule
 
 `endif
